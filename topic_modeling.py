@@ -62,8 +62,8 @@ def compute_coherence_values(corpus, dictionary, texts, start, limit, step):
                              id2word=dictionary,
                              num_topics=num_topics,
                              random_state=100,
-                             workers=3,  # Adjust based on your CPU cores
-                             chunksize=100,
+                             workers=8,  # Adjust based on your CPU cores
+                             chunksize=2000,
                              passes=10,
                              alpha=alpha,  # Using symmetric alpha instead of 'auto'
                              eta='auto',  # We can still use 'auto' for eta
@@ -91,11 +91,24 @@ def visualize_topics(lda_model, corpus, dictionary):
     pyLDAvis.save_html(vis, 'Data/lda_visualization.html')
 
 
-# New function to assign topic probabilities to comments
+# Helper function to convert numpy types to Python native types
+def convert_to_json_serializable(obj):
+    if isinstance(obj, np.float32):
+        return float(obj)
+    elif isinstance(obj, np.int64):
+        return int(obj)
+    raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
+
+
+# Updated function to assign topic probabilities to comments
 def assign_topic_probabilities(lda_model, corpus, comments):
-    topic_probabilities = lda_model.get_document_topics(corpus, minimum_probability=0)
-    for comment, probs in zip(comments, topic_probabilities):
-        comment['topic_probabilities'] = {str(topic): prob for topic, prob in probs}
+    for comment, bow in zip(comments, corpus):
+        topic_probs = lda_model.get_document_topics(bow, minimum_probability=0)
+        # Sort by topic id and extract only probabilities
+        sorted_probs = sorted(topic_probs, key=lambda x: x[0])
+        comment['topic_probabilities'] = [prob for _, prob in sorted_probs]
+        # Add most probable topic
+        comment['most_probable_topic'] = max(topic_probs, key=lambda x: x[1])[0]
     return comments
 
 
@@ -142,7 +155,7 @@ if __name__ == "__main__":
 
     # Save updated processed comments with topic probabilities
     with open('Data/processed_comments_with_topics.json', 'w', encoding='utf-8') as f:
-        json.dump(processed_comments, f, ensure_ascii=False, indent=2)
+        json.dump(processed_comments, f, ensure_ascii=False, indent=2, default=convert_to_json_serializable)
     print("Updated processed comments saved with topic probabilities")
 
     print("LDA analysis complete")
