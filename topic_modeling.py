@@ -57,8 +57,17 @@ def compute_coherence_values(corpus, dictionary, texts, start, limit, step):
     coherence_values = []
     model_list = []
     for num_topics in range(start, limit, step):
-        model = LdaMulticore(corpus=corpus, id2word=dictionary, num_topics=num_topics, random_state=100,
-                             workers=3, chunksize=100, passes=10, alpha='auto', per_word_topics=True)
+        alpha = f'symmetric'  # This creates a symmetric alpha of 1/num_topics for each topic
+        model = LdaMulticore(corpus=corpus,
+                             id2word=dictionary,
+                             num_topics=num_topics,
+                             random_state=100,
+                             workers=3,  # Adjust based on your CPU cores
+                             chunksize=100,
+                             passes=10,
+                             alpha=alpha,  # Using symmetric alpha instead of 'auto'
+                             eta='auto',  # We can still use 'auto' for eta
+                             per_word_topics=True)
         model_list.append(model)
         coherencemodel = CoherenceModel(model=model, texts=texts, dictionary=dictionary, coherence='c_v')
         coherence_values.append(coherencemodel.get_coherence())
