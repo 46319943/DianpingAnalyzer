@@ -45,9 +45,13 @@ def prepare_data():
     # Prepare X (features)
     X = df[['sentiment_score', 'topic_probabilities']]
     X['topic_probabilities'] = X['topic_probabilities'].apply(
-        lambda x: x if isinstance(x, list) else [0] * 5)  # Assuming 10 topics
-    X = pd.concat([X.drop('topic_probabilities', axis=1),
-                   pd.DataFrame(X['topic_probabilities'].tolist())], axis=1)
+        lambda x: x if isinstance(x, list) else [0] * 10)  # Assuming 10 topics
+
+    # Expand topic probabilities and assign labels
+    topic_probs = pd.DataFrame(X['topic_probabilities'].tolist(),
+                               columns=[f'Topic {i + 1} Probability' for i in range(10)])
+
+    X = pd.concat([X.drop('topic_probabilities', axis=1), topic_probs], axis=1)
 
     # Prepare y (target)
     def categorize_rank(rank):
@@ -97,14 +101,14 @@ def shap_analysis(model, X_test):
     shap_values = explainer.shap_values(X_test)
 
     # 1. Summary plot (bar)
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(12, 8))
     shap.summary_plot(shap_values, X_test, plot_type="bar", show=False)
     plt.tight_layout()
     plt.savefig('Data/shap_summary_bar.png')
     plt.close()
 
     # 2. Summary plot (dot)
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(12, 8))
     shap.summary_plot(shap_values, X_test, show=False)
     plt.tight_layout()
     plt.savefig('Data/shap_summary_dot.png')
