@@ -45,11 +45,11 @@ def prepare_data():
     # Prepare X (features)
     X = df[['sentiment_score', 'topic_probabilities']]
     X['topic_probabilities'] = X['topic_probabilities'].apply(
-        lambda x: x if isinstance(x, list) else [0] * 10)  # Assuming 10 topics
+        lambda x: x if isinstance(x, list) else [0] * 5)  # Assuming 5 topics
 
     # Expand topic probabilities and assign labels
     topic_probs = pd.DataFrame(X['topic_probabilities'].tolist(),
-                               columns=[f'Topic {i + 1} Probability' for i in range(10)])
+                               columns=[f'Topic {i + 1} Probability' for i in range(5)])
 
     X = pd.concat([X.drop('topic_probabilities', axis=1), topic_probs], axis=1)
 
