@@ -87,25 +87,43 @@ def xgboost_classification(X, y):
 
 # Step 4: SHAP Analysis
 def shap_analysis(model, X_test):
-    # booster = model.get_booster()
-    # model_barr = booster.save_raw()[4:]
-    # booster.save_raw = lambda: model_barr
-
     # Compute SHAP values
     explainer = shap.TreeExplainer(model)
-    shap_values = explainer.shap_values(X_test.values)
+    shap_values = explainer.shap_values(X_test)
 
-    # Generate and save visualizations
+    # 1. Summary plot (bar)
     plt.figure(figsize=(10, 6))
     shap.summary_plot(shap_values, X_test, plot_type="bar", show=False)
     plt.tight_layout()
     plt.savefig('Data/shap_summary_bar.png')
     plt.close()
 
+    # 2. Summary plot (dot)
     plt.figure(figsize=(10, 6))
     shap.summary_plot(shap_values, X_test, show=False)
     plt.tight_layout()
     plt.savefig('Data/shap_summary_dot.png')
+    plt.close()
+
+    # 3. Beeswarm plot
+    plt.figure(figsize=(10, 8))
+    shap.plots.beeswarm(shap_values[1], show=False)  # Assuming class 1 (index 0 is for class 0)
+    plt.tight_layout()
+    plt.savefig('Data/shap_beeswarm.png')
+    plt.close()
+
+    # 4. Force plot for a single prediction
+    plt.figure(figsize=(20, 3))
+    shap.force_plot(explainer.expected_value[1], shap_values[1][0, :], X_test.iloc[0, :], show=False, matplotlib=True)
+    plt.tight_layout()
+    plt.savefig('Data/shap_force_plot.png')
+    plt.close()
+
+    # 5. Decision plot
+    plt.figure(figsize=(10, 6))
+    shap.decision_plot(explainer.expected_value[1], shap_values[1], X_test, show=False)
+    plt.tight_layout()
+    plt.savefig('Data/shap_decision_plot.png')
     plt.close()
 
     print("SHAP visualizations saved in Data folder")
