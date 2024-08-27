@@ -7,6 +7,7 @@ from collections import Counter
 
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import font_manager
 from wordcloud import WordCloud
 from transformers import AutoTokenizer
 from vllm import LLM, SamplingParams
@@ -25,6 +26,12 @@ console_handler.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
+
+# Font configuration
+chinese_font_path = 'Fonts/SimHei.ttf'  # Update this path to your Chinese font file
+font_manager.fontManager.addfont(chinese_font_path)
+plt.rcParams['font.sans-serif'] = ['SimHei']  # Use the font name here
+plt.rcParams['axes.unicode_minus'] = False  # Correct minus sign display
 
 # Updated hard-coded parameters
 INPUT_FILE = 'Data/大众点评.jsonl'
@@ -175,21 +182,23 @@ def visualize_sense_proportion(annotations: List[Dict]):
     senses = [ann['sense'] for result in annotations for ann in result['annotations'] if 'sense' in ann]
     sense_counts = Counter(senses)
 
-    plt.figure(figsize=(10, 10))
+    plt.figure(figsize=(12, 8))
     plt.pie(sense_counts.values(), labels=sense_counts.keys(), autopct='%1.1f%%')
-    plt.title('Proportion of Senses')
-    plt.savefig('Output/sense_proportion.png')
+    plt.title('感官比例', fontsize=16)
+    plt.savefig('Output/sense_proportion.png', dpi=300, bbox_inches='tight')
     plt.close()
 
 
 def create_word_cloud(words: List[str], title: str, output_file: str):
-    wordcloud = WordCloud(width=800, height=400, background_color='white').generate(' '.join(words))
+    wordcloud = WordCloud(width=800, height=400, background_color='white',
+                          font_path=chinese_font_path,
+                          max_font_size=100, random_state=42).generate(' '.join(words))
 
-    plt.figure(figsize=(10, 5))
+    plt.figure(figsize=(12, 6))
     plt.imshow(wordcloud, interpolation='bilinear')
     plt.axis('off')
-    plt.title(title)
-    plt.savefig(output_file)
+    plt.title(title, fontsize=16)
+    plt.savefig(output_file, dpi=300, bbox_inches='tight')
     plt.close()
 
 
@@ -197,22 +206,30 @@ def visualize_word_clouds(annotations: List[Dict]):
     stimuli = [ann['stimulus'] for result in annotations for ann in result['annotations'] if 'stimulus' in ann]
     perceptions = [ann['perception'] for result in annotations for ann in result['annotations'] if 'perception' in ann]
 
-    create_word_cloud(stimuli, 'Stimulus Word Cloud', 'Data/stimulus_wordcloud.png')
-    create_word_cloud(perceptions, 'Perception Word Cloud', 'Data/perception_wordcloud.png')
+    create_word_cloud(stimuli, '刺激物词云', 'Output/stimulus_wordcloud.png')
+    create_word_cloud(perceptions, '感知词云', 'Output/perception_wordcloud.png')
 
 
 def visualize_aspect_statistics(annotations: List[Dict]):
     aspects = [ann['aspect'] for result in annotations for ann in result['annotations'] if 'aspect' in ann]
     aspect_counts = Counter(aspects)
 
-    plt.figure(figsize=(12, 6))
-    plt.bar(aspect_counts.keys(), aspect_counts.values())
-    plt.title('Aspect Statistics')
-    plt.xlabel('Aspect')
-    plt.ylabel('Count')
+    plt.figure(figsize=(14, 8))
+    bars = plt.bar(aspect_counts.keys(), aspect_counts.values())
+    plt.title('方面统计', fontsize=16)
+    plt.xlabel('方面', fontsize=12)
+    plt.ylabel('数量', fontsize=12)
     plt.xticks(rotation=45, ha='right')
+
+    # Add value labels on top of each bar
+    for bar in bars:
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width() / 2., height,
+                 f'{height}',
+                 ha='center', va='bottom')
+
     plt.tight_layout()
-    plt.savefig('Data/aspect_statistics.png')
+    plt.savefig('Output/aspect_statistics.png', dpi=300, bbox_inches='tight')
     plt.close()
 
 
