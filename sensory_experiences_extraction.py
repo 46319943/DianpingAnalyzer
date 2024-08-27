@@ -69,7 +69,7 @@ def generate_input(system_prompt: str, task_prompt: str, text: str) -> List[Dict
 
 
 def generate_response_batch(llm: LLM, tokenizer: AutoTokenizer, batch_messages: List[List[Dict]], lora_path: str) -> \
-List[str]:
+        List[str]:
     # Prepare input texts
     texts = [tokenizer.apply_chat_template(messages, add_generation_prompt=True, tokenize=False) for messages in
              batch_messages]
@@ -233,34 +233,55 @@ def visualize_aspect_statistics(annotations: List[Dict]):
     plt.close()
 
 
+def is_output_complete(input_file: str, output_file: str) -> bool:
+    if not os.path.exists(output_file):
+        return False
+
+    input_count = sum(1 for _ in open(input_file, 'r', encoding='utf-8'))
+    output_count = sum(1 for _ in open(output_file, 'r', encoding='utf-8'))
+
+    return input_count == output_count
+
+
+def load_processed_data(output_file: str) -> List[Dict]:
+    with open(output_file, 'r', encoding='utf-8') as f:
+        return [json.loads(line) for line in f]
+
+
 def main():
-    logger.info("Starting inference process")
+    logger.info("Starting the process")
 
-    llm, tokenizer = setup_model_and_tokenizer(BASE_MODEL)
-    logger.info(f"Model and tokenizer set up with base model: {BASE_MODEL}")
+    if is_output_complete(INPUT_FILE, OUTPUT_FILE):
+        logger.info("Output file is complete. Loading processed data.")
+        all_results = load_processed_data(OUTPUT_FILE)
+    else:
+        logger.info("Output file is incomplete. Starting inference process.")
 
-    system_prompt = read_txt(SYSTEM_PROMPT_FILE)
-    task_prompt = read_txt(TASK_PROMPT_FILE)
-    logger.info("Loaded system and task prompts")
+        llm, tokenizer = setup_model_and_tokenizer(BASE_MODEL)
+        logger.info(f"Model and tokenizer set up with base model: {BASE_MODEL}")
 
-    input_data = read_jsonl(INPUT_FILE)
-    logger.info(f"Loaded {len(input_data)} items from {INPUT_FILE}")
+        system_prompt = read_txt(SYSTEM_PROMPT_FILE)
+        task_prompt = read_txt(TASK_PROMPT_FILE)
+        logger.info("Loaded system and task prompts")
 
-    processed_count = load_progress(OUTPUT_FILE)
-    logger.info(f"Loaded {processed_count} existing results")
+        input_data = read_jsonl(INPUT_FILE)
+        logger.info(f"Loaded {len(input_data)} items from {INPUT_FILE}")
 
-    all_results = []
+        processed_count = load_progress(OUTPUT_FILE)
+        logger.info(f"Loaded {processed_count} existing results")
 
-    for i in range(processed_count, len(input_data), BATCH_SIZE):
-        batch = input_data[i:i + BATCH_SIZE]
-        logger.info(f"Processing batch {i // BATCH_SIZE + 1}, items {i} to {min(i + BATCH_SIZE, len(input_data))}")
+        all_results = []
 
-        batch_results = process_batch(llm, tokenizer, batch, LORA_PATH, system_prompt, task_prompt)
-        save_progress(OUTPUT_FILE, batch_results)
-        all_results.extend(batch_results)
-        logger.info(f"Saved progress. Total processed: {i + len(batch_results)}")
+        for i in range(processed_count, len(input_data), BATCH_SIZE):
+            batch = input_data[i:i + BATCH_SIZE]
+            logger.info(f"Processing batch {i // BATCH_SIZE + 1}, items {i} to {min(i + BATCH_SIZE, len(input_data))}")
 
-    logger.info("Inference process completed")
+            batch_results = process_batch(llm, tokenizer, batch, LORA_PATH, system_prompt, task_prompt)
+            save_progress(OUTPUT_FILE, batch_results)
+            all_results.extend(batch_results)
+            logger.info(f"Saved progress. Total processed: {i + len(batch_results)}")
+
+        logger.info("Inference process completed")
 
     # Visualizations
     logger.info("Generating visualizations")
