@@ -28,7 +28,7 @@ console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 
 # Font configuration
-chinese_font_path = 'Fonts/SimHei.ttf'  # Update this path to your Chinese font file
+chinese_font_path = '/mnt/c/Windows/Fonts/SimHei.ttf'  # Update this path to your Chinese font file
 font_manager.fontManager.addfont(chinese_font_path)
 plt.rcParams['font.sans-serif'] = ['SimHei']  # Use the font name here
 plt.rcParams['axes.unicode_minus'] = False  # Correct minus sign display
@@ -233,6 +233,17 @@ def visualize_aspect_statistics(annotations: List[Dict]):
     plt.close()
 
 
+def visualize_sentiment_proportion(annotations: List[Dict]):
+    sentiments = [ann['sentiment'] for result in annotations for ann in result['annotations'] if 'sentiment' in ann]
+    sentiment_counts = Counter(sentiments)
+
+    plt.figure(figsize=(12, 8))
+    plt.pie(sentiment_counts.values(), labels=sentiment_counts.keys(), autopct='%1.1f%%')
+    plt.title('情感比例', fontsize=16)
+    plt.savefig('Output/sentiment_proportion.png', dpi=300, bbox_inches='tight')
+    plt.close()
+
+
 def is_output_complete(input_file: str, output_file: str) -> bool:
     if not os.path.exists(output_file):
         return False
@@ -288,6 +299,7 @@ def main():
     visualize_sense_proportion(all_results)
     visualize_word_clouds(all_results)
     visualize_aspect_statistics(all_results)
+    visualize_sentiment_proportion(all_results)  # New visualization
     logger.info("Visualizations completed")
 
 
