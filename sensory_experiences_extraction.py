@@ -185,7 +185,7 @@ def visualize_sense_proportion(annotations: List[Dict]):
     plt.figure(figsize=(12, 8))
     plt.pie(sense_counts.values(), labels=sense_counts.keys(), autopct='%1.1f%%')
     plt.title('感官比例', fontsize=16)
-    plt.savefig('Output/sense_proportion.png', dpi=300, bbox_inches='tight')
+    plt.savefig('Data/sense_proportion.png', dpi=300, bbox_inches='tight')
     plt.close()
 
 
@@ -206,8 +206,8 @@ def visualize_word_clouds(annotations: List[Dict]):
     stimuli = [ann['stimulus'] for result in annotations for ann in result['annotations'] if 'stimulus' in ann]
     perceptions = [ann['perception'] for result in annotations for ann in result['annotations'] if 'perception' in ann]
 
-    create_word_cloud(stimuli, '刺激物词云', 'Output/stimulus_wordcloud.png')
-    create_word_cloud(perceptions, '感知词云', 'Output/perception_wordcloud.png')
+    create_word_cloud(stimuli, '刺激物词云', 'Data/stimulus_wordcloud.png')
+    create_word_cloud(perceptions, '感知词云', 'Data/perception_wordcloud.png')
 
 
 def visualize_aspect_statistics(annotations: List[Dict]):
@@ -229,7 +229,7 @@ def visualize_aspect_statistics(annotations: List[Dict]):
                  ha='center', va='bottom')
 
     plt.tight_layout()
-    plt.savefig('Output/aspect_statistics.png', dpi=300, bbox_inches='tight')
+    plt.savefig('Data/aspect_statistics.png', dpi=300, bbox_inches='tight')
     plt.close()
 
 
@@ -240,7 +240,7 @@ def visualize_sentiment_proportion(annotations: List[Dict]):
     plt.figure(figsize=(12, 8))
     plt.pie(sentiment_counts.values(), labels=sentiment_counts.keys(), autopct='%1.1f%%')
     plt.title('情感比例', fontsize=16)
-    plt.savefig('Output/sentiment_proportion.png', dpi=300, bbox_inches='tight')
+    plt.savefig('Data/sentiment_proportion.png', dpi=300, bbox_inches='tight')
     plt.close()
 
 
