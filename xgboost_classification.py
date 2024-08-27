@@ -17,19 +17,24 @@ def merge_data():
 
     # Convert to DataFrame
     topics_df = pd.DataFrame(topics_data)
+    topics_df['id'] = topics_df['id'].astype(str)  # Convert id to string
     topics_df.set_index('id', inplace=True)
 
     # Read JSONL file
     sentiment_df = pd.read_json('Data/大众点评_with_sentiment.jsonl', lines=True)
+    sentiment_df['id'] = sentiment_df['id'].astype(str)  # Convert id to string
     sentiment_df.set_index('id', inplace=True)
 
     # Merge dataframes
-    merged_df = sentiment_df.join(topics_df[['topic_probabilities']], how='left')
+    merged_df = pd.merge(sentiment_df, topics_df[['topic_probabilities']],
+                         left_index=True, right_index=True,
+                         how='left', validate='1:1')
 
     # Save merged data
     merged_df.to_json('Data/merged_comments_for_analysis.jsonl', orient='records', lines=True)
 
     print("Data merged and saved to 'Data/merged_comments_for_analysis.jsonl'")
+    print(f"Number of rows in merged data: {len(merged_df)}")
 
 
 # Step 2: Data Preparation
