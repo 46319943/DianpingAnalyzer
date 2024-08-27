@@ -3,3 +3,4 @@ pkuseg
 gensim
 matplotlib
 pyLDAvis
+transformers
