@@ -1,4 +1,6 @@
 import json
+from collections import OrderedDict
+
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -68,15 +70,22 @@ def prepare_data():
     print("Category counts:")
     print(y.value_counts())
 
-    # Encode target variable
-    le = LabelEncoder()
-    y_encoded = le.fit_transform(y)
+    # Custom ordered mapping for encoding
+    label_mapping = OrderedDict([
+        ('Low Rating', 0),
+        ('Medium Rating', 1),
+        ('High Rating', 2)
+    ])
 
-    return X, y_encoded, le
+    # Encode target variable
+    y_encoded = y.map(label_mapping)
+
+    return X, y_encoded, label_mapping
 
 
 # Step 3: XGBoost Classification
-def xgboost_classification(X, y):
+# Step 3: XGBoost Classification
+def xgboost_classification(X, y, label_mapping):
     # Split data
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
@@ -89,7 +98,7 @@ def xgboost_classification(X, y):
 
     # Print evaluation metrics
     print("\nClassification Report:")
-    print(classification_report(y_test, y_pred, target_names=['Low Rating', 'Medium Rating', 'High Rating']))
+    print(classification_report(y_test, y_pred, target_names=list(label_mapping.keys())))
 
     return model, X_test
 
@@ -122,6 +131,6 @@ def shap_analysis(model, X_test):
 # Main execution
 if __name__ == "__main__":
     merge_data()
-    X, y, le = prepare_data()
-    model, X_test = xgboost_classification(X, y)
+    X, y, label_mapping = prepare_data()
+    model, X_test = xgboost_classification(X, y, label_mapping)
     shap_analysis(model, X_test)
