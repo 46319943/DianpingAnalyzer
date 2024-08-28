@@ -102,6 +102,28 @@ def xgboost_classification(X, y, label_mapping):
     return model, X_test
 
 
+def plot_unstacked_bar(shap_values, feature_names, class_names):
+    mean_shap_values = np.mean(np.abs(shap_values), axis=1)
+    feature_count = len(feature_names)
+    class_count = len(class_names)
+
+    fig, ax = plt.subplots(figsize=(12, 8))
+    bar_width = 0.8 / class_count
+    index = np.arange(feature_count)
+
+    for i in range(class_count):
+        ax.bar(index + i * bar_width, mean_shap_values[:, i],
+               bar_width, label=class_names[i], alpha=0.8)
+
+    ax.set_xlabel('Features')
+    ax.set_ylabel('Mean |SHAP value|')
+    ax.set_title('Mean SHAP Values for Each Feature and Class')
+    ax.set_xticks(index + bar_width * (class_count - 1) / 2)
+    ax.set_xticklabels(feature_names, rotation=45, ha='right')
+    ax.legend()
+    plt.tight_layout()
+    return fig
+
 # Step 4: SHAP Analysis
 def shap_analysis(model, X_test, label_mapping):
     # Compute SHAP values using the TreeExplainer
@@ -121,6 +143,11 @@ def shap_analysis(model, X_test, label_mapping):
     plt.tight_layout()
     plt.savefig('Data/shap_summary_plot.png')
     plt.close()
+
+    # Unstacked bar plot
+    unstacked_fig = plot_unstacked_bar(shap_value_array, X_test.columns, list(label_mapping.keys()))
+    unstacked_fig.savefig('Data/shap_unstacked_bar_plot.png')
+    plt.close(unstacked_fig)
 
     # Beeswarm plots for each class
     num_classes = len(shap_values_list)
@@ -147,7 +174,7 @@ def shap_analysis(model, X_test, label_mapping):
     plt.savefig('Data/shap_beeswarm_plots.png')
     plt.close()
 
-    print("SHAP plots saved as 'shap_summary_plot.png' and 'shap_beeswarm_plots.png'")
+    print("SHAP plots saved as 'shap_summary_plot.png', 'shap_unstacked_bar_plot.png', and 'shap_beeswarm_plots.png'")
 
 
 
