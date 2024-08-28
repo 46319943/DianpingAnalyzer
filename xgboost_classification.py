@@ -103,11 +103,13 @@ def xgboost_classification(X, y, label_mapping):
 
 
 def plot_unstacked_bar(shap_values, feature_names, class_names):
-    mean_shap_values = np.mean(np.abs(shap_values), axis=1)
+    # Calculate mean SHAP values across samples for each feature and class
+    mean_shap_values = np.mean(shap_values, axis=0)
+
     feature_count = len(feature_names)
     class_count = len(class_names)
 
-    fig, ax = plt.subplots(figsize=(12, 8))
+    fig, ax = plt.subplots(figsize=(14, 10))
     bar_width = 0.8 / class_count
     index = np.arange(feature_count)
 
@@ -116,11 +118,12 @@ def plot_unstacked_bar(shap_values, feature_names, class_names):
                bar_width, label=class_names[i], alpha=0.8)
 
     ax.set_xlabel('Features')
-    ax.set_ylabel('Mean |SHAP value|')
+    ax.set_ylabel('Mean SHAP value')
     ax.set_title('Mean SHAP Values for Each Feature and Class')
     ax.set_xticks(index + bar_width * (class_count - 1) / 2)
     ax.set_xticklabels(feature_names, rotation=45, ha='right')
     ax.legend()
+    ax.axhline(y=0, color='k', linestyle='-', linewidth=0.5)
     plt.tight_layout()
     return fig
 
