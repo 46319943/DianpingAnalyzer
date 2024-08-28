@@ -144,12 +144,12 @@ def shap_analysis(model, X_test, label_mapping):
     shap.summary_plot(shap_values_list, X_test, plot_type="bar", show=False, class_names=list(label_mapping.keys()))
     plt.title("SHAP Summary Plot")
     plt.tight_layout()
-    plt.savefig('Data/shap_summary_plot.png')
+    plt.savefig('Output/shap_summary_plot.png')
     plt.close()
 
     # Unstacked bar plot
     unstacked_fig = plot_unstacked_bar(shap_value_array, X_test.columns, list(label_mapping.keys()))
-    unstacked_fig.savefig('Data/shap_unstacked_bar_plot.png')
+    unstacked_fig.savefig('Output/shap_unstacked_bar_plot.png')
     plt.close(unstacked_fig)
 
     # Beeswarm plots for each class
@@ -174,7 +174,7 @@ def shap_analysis(model, X_test, label_mapping):
     plt.gcf().set_size_inches(12, 6 * num_classes)
 
     # plt.tight_layout()
-    plt.savefig('Data/shap_beeswarm_plots.png')
+    plt.savefig('Output/shap_beeswarm_plots.png')
     plt.close()
 
     print("SHAP plots saved as 'shap_summary_plot.png', 'shap_unstacked_bar_plot.png', and 'shap_beeswarm_plots.png'")

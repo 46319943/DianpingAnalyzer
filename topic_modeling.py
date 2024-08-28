@@ -81,14 +81,14 @@ def plot_coherence_values(start, limit, step, coherence_values):
     plt.xlabel("Number of Topics")
     plt.ylabel("Coherence score")
     plt.title("Coherence Scores by Number of Topics")
-    plt.savefig('Data/coherence_plot.png')
+    plt.savefig('Output/coherence_plot.png')
     plt.close()
 
 
 # Step 6: Topic Visualization
 def visualize_topics(lda_model, corpus, dictionary):
     vis = pyLDAvis.gensim_models.prepare(lda_model, corpus, dictionary)
-    pyLDAvis.save_html(vis, 'Data/lda_visualization.html')
+    pyLDAvis.save_html(vis, 'Output/lda_visualization.html')
 
 
 # Helper function to convert numpy types to Python native types

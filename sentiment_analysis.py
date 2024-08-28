@@ -42,7 +42,7 @@ def visualize_sentiment_scores(sentiment_scores):
     plt.ylabel("Frequency")
 
     plt.tight_layout()
-    plt.savefig("Data/sentiment_visualization.png")
+    plt.savefig("Output/sentiment_visualization.png")
     print("Visualization saved as sentiment_visualization.png")
 
 
