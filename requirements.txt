@@ -4,3 +4,7 @@ gensim
 matplotlib
 pyLDAvis
 transformers
+scikit-learn
+xgboost
+shap
+lightgbm
