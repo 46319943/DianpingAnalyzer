@@ -84,7 +84,6 @@ def prepare_data():
 
 
 # Step 3: XGBoost Classification
-# Step 3: XGBoost Classification
 def xgboost_classification(X, y, label_mapping):
     # Split data
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -104,7 +103,7 @@ def xgboost_classification(X, y, label_mapping):
 
 
 # Step 4: SHAP Analysis
-def shap_analysis(model, X_test):
+def shap_analysis(model, X_test, label_mapping):
     # Compute SHAP values using the TreeExplainer
     explainer = shap.TreeExplainer(model)
     shap_values = explainer(X_test)
@@ -116,13 +115,39 @@ def shap_analysis(model, X_test):
         shap_values_list.append(shap_value_array[:, :, i])
 
     # Summary Plot
-    shap.summary_plot(shap_values_list, X_test, plot_type="bar", show=False)
+    plt.figure(figsize=(10, 6))
+    shap.summary_plot(shap_values_list, X_test, plot_type="bar", show=False, class_names=list(label_mapping.keys()))
     plt.title("SHAP Summary Plot")
     plt.tight_layout()
-    plt.savefig('shap_summary_plot.png')
+    plt.savefig('Data/shap_summary_plot.png')
     plt.close()
 
-    print()
+    # Beeswarm plots for each class
+    num_classes = len(shap_values_list)
+    plt.figure(figsize=(12, 6 * num_classes))
+
+    for class_index in range(num_classes):
+        shap_values_slice = shap_values[:, :, class_index]
+        plt.subplot(num_classes, 1, class_index + 1)
+        shap.plots.beeswarm(shap_values_slice, show=False)
+        plt.title(f"SHAP Beeswarm Plot - Class {class_index} ({list(label_mapping.keys())[class_index]})")
+
+    plt.subplots_adjust(
+        left=0.25,
+        bottom=0.1,
+        right=1,
+        top=0.9,
+        hspace=0.4,
+    )
+
+    # Set figure size after the shap plot to overwrite the shap's setting.
+    plt.gcf().set_size_inches(12, 6 * num_classes)
+
+    # plt.tight_layout()
+    plt.savefig('Data/shap_beeswarm_plots.png')
+    plt.close()
+
+    print("SHAP plots saved as 'shap_summary_plot.png' and 'shap_beeswarm_plots.png'")
 
 
 
@@ -133,4 +158,4 @@ if __name__ == "__main__":
     merge_data()
     X, y, label_mapping = prepare_data()
     model, X_test = xgboost_classification(X, y, label_mapping)
-    shap_analysis(model, X_test)
+    shap_analysis(model, X_test, label_mapping)
