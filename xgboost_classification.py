@@ -9,7 +9,14 @@ from sklearn.metrics import classification_report
 import xgboost as xgb
 import shap
 import matplotlib.pyplot as plt
+from matplotlib import font_manager
 
+
+# Font configuration
+chinese_font_path = 'C:/Windows/Fonts/SimHei.ttf'  # Update this path to your Chinese font file
+font_manager.fontManager.addfont(chinese_font_path)
+plt.rcParams['font.sans-serif'] = ['SimHei']  # Use the font name here
+plt.rcParams['axes.unicode_minus'] = False  # Correct minus sign display
 
 # Step 1: Data Merging
 def merge_data():
@@ -109,7 +116,7 @@ def plot_unstacked_bar(shap_values, feature_names, class_names):
     feature_count = len(feature_names)
     class_count = len(class_names)
 
-    fig, ax = plt.subplots(figsize=(6, 6))
+    fig, ax = plt.subplots(figsize=(5, 5))
     bar_width = 0.8 / class_count
     index = np.arange(feature_count)
 
@@ -117,9 +124,9 @@ def plot_unstacked_bar(shap_values, feature_names, class_names):
         ax.bar(index + i * bar_width, mean_shap_values[:, i],
                bar_width, label=class_names[i], alpha=0.8)
 
-    ax.set_xlabel('Features')
-    ax.set_ylabel('Mean |SHAP value|')
-    ax.set_title('Mean |SHAP Values| for Each Feature and Class')
+    ax.set_xlabel('特征')
+    ax.set_ylabel('平均 |SHAP 值|')
+    ax.set_title('各特征和类别的平均 |SHAP 值|')
     ax.set_xticks(index + bar_width * (class_count - 1) / 2)
     ax.set_xticklabels(feature_names, rotation=45, ha='right')
     ax.legend()
@@ -139,42 +146,61 @@ def shap_analysis(model, X_test, label_mapping):
     for i in range(shap_value_array.shape[-1]):
         shap_values_list.append(shap_value_array[:, :, i])
 
+    # Define Chinese labels
+    chinese_labels = {
+        'Low Rating': '低评分(两颗星以下)',
+        'Medium Rating': '中评分(两颗星到三颗半星)',
+        'High Rating': '高评分(四颗星及以上)',
+        'Features': '特征',
+        'Mean |SHAP value|': '平均 |SHAP 值|',
+        'SHAP Summary Plot': 'SHAP 汇总图',
+        'Topic 1 Probability': '主题1概率',
+        'Topic 2 Probability': '主题2概率',
+        'Topic 3 Probability': '主题3概率',
+        'Topic 4 Probability': '主题4概率',
+        'Topic 5 Probability': '主题5概率',
+        'sentiment_score': '情感得分'
+    }
+
     # Summary Plot
     plt.figure(figsize=(10, 6))
-    shap.summary_plot(shap_values_list, X_test, plot_type="bar", show=False, class_names=list(label_mapping.keys()))
-    plt.title("SHAP Summary Plot")
+    shap.summary_plot(shap_values_list, X_test, plot_type="bar", show=False, 
+                     class_names=[chinese_labels[k] for k in label_mapping.keys()])
+    plt.title("SHAP 汇总图")
+    plt.xlabel("特征重要性 (平均 |SHAP 值|)")
+    # Translate feature names
+    ax = plt.gca()
+    labels = [chinese_labels.get(label.get_text(), label.get_text()) for label in ax.get_yticklabels()]
+    ax.set_yticklabels(labels)
     plt.tight_layout()
-    plt.savefig('Output/shap_summary_plot.png')
+    plt.savefig('Output/shap_summary_plot.png', dpi=300)
     plt.close()
 
     # Unstacked bar plot
-    unstacked_fig = plot_unstacked_bar(shap_value_array, X_test.columns, list(label_mapping.keys()))
-    unstacked_fig.savefig('Output/shap_unstacked_bar_plot.png')
+    chinese_feature_names = [chinese_labels.get(col, col) for col in X_test.columns]
+    chinese_class_names = [chinese_labels[k] for k in label_mapping.keys()]
+    unstacked_fig = plot_unstacked_bar(shap_value_array, chinese_feature_names, chinese_class_names)
+    unstacked_fig.savefig('Output/shap_unstacked_bar_plot.png', dpi=300)
     plt.close(unstacked_fig)
 
     # Beeswarm plots for each class
     num_classes = len(shap_values_list)
-    plt.figure(figsize=(12, 6 * num_classes))
+    plt.figure(figsize=(6, 4 * num_classes))
 
     for class_index in range(num_classes):
         shap_values_slice = shap_values[:, :, class_index]
         plt.subplot(num_classes, 1, class_index + 1)
         shap.plots.beeswarm(shap_values_slice, show=False)
-        plt.title(f"SHAP Beeswarm Plot - Class {class_index} ({list(label_mapping.keys())[class_index]})")
+        class_name = list(label_mapping.keys())[class_index]
+        plt.title(f"SHAP 蜂群图 - 类别 {class_index} ({chinese_labels[class_name]})")
+        # Translate feature names
+        ax = plt.gca()
+        labels = [chinese_labels.get(label.get_text(), label.get_text()) for label in ax.get_yticklabels()]
+        ax.set_yticklabels(labels)
 
-    plt.subplots_adjust(
-        left=0.25,
-        bottom=0.1,
-        right=1,
-        top=0.9,
-        hspace=0.4,
-    )
-
-    # Set figure size after the shap plot to overwrite the shap's setting.
-    plt.gcf().set_size_inches(12, 6 * num_classes)
-
-    # plt.tight_layout()
-    plt.savefig('Output/shap_beeswarm_plots.png')
+    plt.subplots_adjust(left=0.25, bottom=0.1, right=1, top=0.9, hspace=0.4)
+    plt.gcf().set_size_inches(6, 4 * num_classes)
+    plt.savefig('Output/shap_beeswarm_plots.png', dpi=300)
     plt.close()
 
     print("SHAP plots saved as 'shap_summary_plot.png', 'shap_unstacked_bar_plot.png', and 'shap_beeswarm_plots.png'")

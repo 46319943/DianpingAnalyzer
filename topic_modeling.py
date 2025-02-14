@@ -6,6 +6,13 @@ from gensim.models import LdaMulticore, CoherenceModel
 import matplotlib.pyplot as plt
 import pyLDAvis.gensim_models
 import numpy as np
+from matplotlib import font_manager
+
+# Font configuration
+chinese_font_path = 'C:/Windows/Fonts/SimHei.ttf'  # Update this path to your Chinese font file
+font_manager.fontManager.addfont(chinese_font_path)
+plt.rcParams['font.sans-serif'] = ['SimHei']  # Use the font name here
+plt.rcParams['axes.unicode_minus'] = False  # Correct minus sign display
 
 
 # Step 1: Data Loading
@@ -77,10 +84,11 @@ def compute_coherence_values(corpus, dictionary, texts, start, limit, step):
 
 def plot_coherence_values(start, limit, step, coherence_values):
     x = range(start, limit, step)
+    plt.figure(figsize=(5, 4))
     plt.plot(x, coherence_values)
-    plt.xlabel("Number of Topics")
-    plt.ylabel("Coherence score")
-    plt.title("Coherence Scores by Number of Topics")
+    plt.xlabel("主题数量")
+    plt.ylabel("连贯性分数")
+    plt.title("主题数量与连贯性分数关系图")
     plt.savefig('Output/coherence_plot.png')
     plt.close()
 

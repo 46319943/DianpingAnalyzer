@@ -179,12 +179,37 @@ def process_batch(llm: LLM, tokenizer: AutoTokenizer, batch: List[Dict], lora_pa
 
 
 def visualize_sense_proportion(annotations: List[Dict]):
+    # Create mapping for English to Chinese sense labels
+    sense_to_chinese = {
+        'Sight': '视觉',
+        'Sound': '听觉',
+        'Smell': '嗅觉',
+        'Taste': '味觉',
+        'Touch': '触觉'
+    }
+    
     senses = [ann['sense'] for result in annotations for ann in result['annotations'] if 'sense' in ann]
     sense_counts = Counter(senses)
+    
+    # Filter and translate the senses
+    filtered_counts = {sense_to_chinese[sense]: count 
+                      for sense, count in sense_counts.items() 
+                      if sense in sense_to_chinese}
 
-    plt.figure(figsize=(12, 8))
-    plt.pie(sense_counts.values(), labels=sense_counts.keys(), autopct='%1.1f%%')
+    plt.figure(figsize=(4, 3))
+    bars = plt.bar(filtered_counts.keys(), filtered_counts.values())
     plt.title('感官比例', fontsize=16)
+    plt.xlabel('感官类型', fontsize=12)
+    plt.ylabel('数量', fontsize=12)
+    
+    # Add value labels on top of each bar
+    for bar in bars:
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2, height,
+                f'{int(height)}',
+                ha='center', va='bottom')
+    
+    plt.tight_layout()
     plt.savefig('Output/sense_proportion.png', dpi=300, bbox_inches='tight')
     plt.close()
 
@@ -213,33 +238,78 @@ def visualize_word_clouds(annotations: List[Dict]):
 def visualize_aspect_statistics(annotations: List[Dict]):
     aspects = [ann['aspect'] for result in annotations for ann in result['annotations'] if 'aspect' in ann]
     aspect_counts = Counter(aspects)
-
-    plt.figure(figsize=(18, 3))
-    bars = plt.bar(aspect_counts.keys(), aspect_counts.values())
-    plt.title('方面统计', fontsize=16)
-    plt.xlabel('方面', fontsize=12)
-    plt.ylabel('数量', fontsize=12)
-    plt.xticks(rotation=45, ha='right')
-
-    # Add value labels on top of each bar
-    for bar in bars:
-        height = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width() / 2., height,
-                 f'{height}',
-                 ha='center', va='bottom')
-
+    
+    # Sort aspects by count in descending order
+    sorted_aspects = dict(sorted(aspect_counts.items(), key=lambda x: x[1], reverse=True))
+    
+    # Split into two columns
+    n_aspects = len(sorted_aspects)
+    mid_point = (n_aspects + 1) // 2  # Using ceiling division for odd numbers
+    
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6, 8))
+    
+    # First column (first half of aspects)
+    aspects1 = list(sorted_aspects.keys())[:mid_point]
+    counts1 = list(sorted_aspects.values())[:mid_point]
+    bars1 = ax1.barh(aspects1, counts1)
+    
+    # Second column (second half of aspects)
+    aspects2 = list(sorted_aspects.keys())[mid_point:]
+    counts2 = list(sorted_aspects.values())[mid_point:]
+    bars2 = ax2.barh(aspects2, counts2)
+    
+    # Set the same x-axis limits for both subplots
+    max_count = max(sorted_aspects.values())
+    ax1.set_xlim(0, max_count)
+    ax2.set_xlim(0, max_count)
+    
+    # Add labels and styling for both columns
+    for ax, bars in [(ax1, bars1), (ax2, bars2)]:
+        ax.set_xlabel('数量', fontsize=12)
+        # Add value labels to the right of each bar
+        for bar in bars:
+            width = bar.get_width()
+            ax.text(width, bar.get_y() + bar.get_height()/2,
+                    f'{int(width)}',
+                    ha='left', va='center')
+    
+    # Set titles
+    fig.suptitle('方面统计', fontsize=16)
+    
     plt.tight_layout()
     plt.savefig('Output/aspect_statistics.png', dpi=300, bbox_inches='tight')
     plt.close()
 
 
 def visualize_sentiment_proportion(annotations: List[Dict]):
+    # Create mapping for English to Chinese sentiment labels
+    sentiment_to_chinese = {
+        'Positive': '积极',
+        'Neutral': '中立',
+        'Negative': '消极'
+    }
+    
     sentiments = [ann['sentiment'] for result in annotations for ann in result['annotations'] if 'sentiment' in ann]
     sentiment_counts = Counter(sentiments)
+    
+    # Convert English labels to Chinese
+    chinese_counts = {sentiment_to_chinese[sentiment]: count 
+                     for sentiment, count in sentiment_counts.items()}
 
-    plt.figure(figsize=(12, 8))
-    plt.pie(sentiment_counts.values(), labels=sentiment_counts.keys(), autopct='%1.1f%%')
-    plt.title('情感比例', fontsize=16)
+    plt.figure(figsize=(4, 3))
+    bars = plt.bar(chinese_counts.keys(), chinese_counts.values())
+    plt.title('情感比例', fontsize=20)
+    plt.xlabel('情感类型', fontsize=12)
+    plt.ylabel('数量', fontsize=12)
+    
+    # Add value labels on top of each bar
+    for bar in bars:
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2, height,
+                f'{int(height)}',
+                ha='center', va='bottom')
+    
+    plt.tight_layout()
     plt.savefig('Output/sentiment_proportion.png', dpi=300, bbox_inches='tight')
     plt.close()
 

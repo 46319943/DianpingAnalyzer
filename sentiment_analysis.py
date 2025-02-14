@@ -2,7 +2,13 @@ import json
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import matplotlib.pyplot as plt
+from matplotlib import font_manager
 
+# Font configuration
+chinese_font_path = '/mnt/c/Windows/Fonts/SimHei.ttf'  # Update this path to your Chinese font file
+font_manager.fontManager.addfont(chinese_font_path)
+plt.rcParams['font.sans-serif'] = ['SimHei']  # Use the font name here
+plt.rcParams['axes.unicode_minus'] = False  # Correct minus sign display
 
 def setup_model():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -26,23 +32,23 @@ def analyze_sentiment(text, tokenizer, model, device):
 
 
 def visualize_sentiment_scores(sentiment_scores):
-    plt.figure(figsize=(12, 5))
+    plt.figure(figsize=(8, 3))
 
     # Box plot
     plt.subplot(1, 2, 1)
     plt.boxplot(sentiment_scores)
-    plt.title("Box Plot of Sentiment Scores")
-    plt.ylabel("Sentiment Score")
+    plt.title("情感得分箱型图")
+    plt.ylabel("情感得分")
 
     # Histogram
     plt.subplot(1, 2, 2)
     plt.hist(sentiment_scores, bins=20, edgecolor='black')
-    plt.title("Histogram of Sentiment Scores")
-    plt.xlabel("Sentiment Score")
-    plt.ylabel("Frequency")
+    plt.title("情感得分直方图")
+    plt.xlabel("情感得分")
+    plt.ylabel("频率")
 
     plt.tight_layout()
-    plt.savefig("Output/sentiment_visualization.png")
+    plt.savefig("Output/sentiment_visualization.png", dpi=300)
     print("Visualization saved as sentiment_visualization.png")
 
 
